@@ -46,6 +46,7 @@ MandelbrotViewer::MandelbrotViewer(unsigned int windowWidth, unsigned int window
 
     // disable key repeat
     mWindow.setKeyRepeatEnabled(false);
+    mWindow.setFramerateLimit(60);
 
     // Initially no text to show
     mCursorWorldPosText.setString("");
@@ -68,6 +69,7 @@ void MandelbrotViewer::run() {
     sf::Clock clock;
     sf::Time lastTime = sf::Time();
     int maxIters = MAX_ITERS_LOWER_BOUND;
+    int renderedMaxIters = -1;
     while (true) {
         sf::Time curTime = clock.getElapsedTime();
         // Handle inputs
@@ -86,8 +88,11 @@ void MandelbrotViewer::run() {
         maxIters = (viewChanged ? MAX_ITERS_LOWER_BOUND
                                 : std::min(maxIters * ITERS_MULTIPLIER, MAX_ITERS_UPPER_BOUND));
         // Render:
-        drawIntoViewBuffer(maxIters);
-        copyViewBufferToGPU();
+        if (viewChanged || maxIters != renderedMaxIters) {
+            drawIntoViewBuffer(maxIters);
+            copyViewBufferToGPU();
+            renderedMaxIters = maxIters;
+        }
         draw();
         // update timing stats
         lastTime = curTime;
